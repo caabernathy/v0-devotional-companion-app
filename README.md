@@ -78,6 +78,10 @@ A Next.js-based devotional companion application that provides AI-generated dail
 
 This project is configured for deployment on Vercel. Connect your repository to Vercel and ensure all environment variables from `env.example` are configured in your Vercel project settings.
 
+## Resources
+- Planning: [Claude chat](https://claude.ai/share/83f6a8ac-fd62-4c7a-82aa-5517a4b501a6) | [ChatGPT chat](https://chatgpt.com/share/68db3caf-54d0-8000-b855-d90ea18fdbdb)
+- Video walk-through initial setup: [Part 1 - v0](https://youtu.be/4FzbxN2QPvU) | [Part 2 - Lovable](https://youtu.be/bsPGJMWYTQA) | [Part 3 - VS Code + Codex](https://youtu.be/3Pdf4tG0s8M)
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details
