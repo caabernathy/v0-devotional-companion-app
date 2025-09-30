@@ -1,30 +1,83 @@
-# Devotional companion app
+# Devotional Companion App
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+A Next.js-based devotional companion application that provides AI-generated daily devotions and interactive chat functionality powered by Gloo AI and Supabase.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/cabernathy-7230s-projects/v0-devotional-companion-app)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/QdJryNBWuki)
+## Features
 
-## Overview
+- AI-generated daily devotionals using Claude Sonnet 4
+- Interactive chat interface for spiritual guidance
+- User authentication and data persistence with Supabase
+- Modern UI built with React, Tailwind CSS, and Radix UI components
+- Responsive design for mobile and desktop
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+## Prerequisites
+
+- Node.js 18+ and npm
+- A Supabase account and project
+- Gloo AI API credentials (client ID and secret)
+
+## Local Development Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd v0-devotional-companion-app
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables**
+
+   Copy the `env.example` file to `.env.local`:
+   ```bash
+   cp env.example .env.local
+   ```
+
+   Update `.env.local` with your actual credentials:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=<your-supabase-url>
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-supabase-anon-key>
+   GLOO_BASE_URL=https://platform.ai.gloo.com/ai/v1
+   GLOO_MODEL=us.anthropic.claude-sonnet-4-20250514-v1:0
+   GLOO_CLIENT_ID=<your-client-id>
+   GLOO_CLIENT_SECRET=<your-client-secret>
+   ```
+
+   **Where to get credentials:**
+   - **Supabase**: Create a project at [supabase.com](https://supabase.com), then find your URL and anon key in Project Settings > API
+   - **Gloo AI**: Sign up at [gloo.com](https://gloo.com) and obtain your client ID and secret from your dashboard
+
+4. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Available Scripts
+
+- `npm run dev` - Start the development server
+- `npm run build` - Build the production application
+- `npm start` - Start the production server
+- `npm run lint` - Run ESLint
+
+## Tech Stack
+
+- **Framework**: Next.js 14
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: Radix UI
+- **AI**: Gloo AI (Claude Sonnet 4)
+- **Database**: Supabase
+- **Deployment**: Vercel
 
 ## Deployment
 
-Your project is live at:
+This project is configured for deployment on Vercel. Connect your repository to Vercel and ensure all environment variables from `env.example` are configured in your Vercel project settings.
 
-**[https://vercel.com/cabernathy-7230s-projects/v0-devotional-companion-app](https://vercel.com/cabernathy-7230s-projects/v0-devotional-companion-app)**
+## License
 
-## Build your app
-
-Continue building your app on:
-
-**[https://v0.app/chat/projects/QdJryNBWuki](https://v0.app/chat/projects/QdJryNBWuki)**
-
-## How It Works
-
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+MIT License - see [LICENSE](LICENSE) file for details
