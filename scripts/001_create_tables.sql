@@ -10,13 +10,15 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
 -- Create devotionals table
 CREATE TABLE IF NOT EXISTS public.devotionals (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  date DATE NOT NULL UNIQUE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
   verse_reference TEXT NOT NULL,
   verse_text TEXT NOT NULL,
   reflection TEXT NOT NULL,
   prayer_points TEXT[] NOT NULL,
   themes TEXT[] NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, date)
 );
 
 -- Create journals table
@@ -84,10 +86,22 @@ CREATE POLICY "Users can update their own profile"
   ON public.user_profiles FOR UPDATE
   USING (auth.uid() = id);
 
--- RLS Policies for devotionals (public read, admin write)
-CREATE POLICY "Anyone can view devotionals"
+-- RLS Policies for devotionals (per-user access)
+CREATE POLICY "Users can view their devotionals"
   ON public.devotionals FOR SELECT
-  USING (true);
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their devotionals"
+  ON public.devotionals FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their devotionals"
+  ON public.devotionals FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their devotionals"
+  ON public.devotionals FOR DELETE
+  USING (auth.uid() = user_id);
 
 -- RLS Policies for journals
 CREATE POLICY "Users can view their own journals"
@@ -158,7 +172,7 @@ CREATE POLICY "Users can update their own theme aggregates"
   USING (auth.uid() = user_id);
 
 -- Create indexes for performance
-CREATE INDEX idx_devotionals_date ON public.devotionals(date);
+CREATE INDEX idx_devotionals_user_date ON public.devotionals(user_id, date DESC);
 CREATE INDEX idx_journals_user_id ON public.journals(user_id);
 CREATE INDEX idx_journals_created_at ON public.journals(created_at DESC);
 CREATE INDEX idx_conversations_user_id ON public.conversations(user_id);

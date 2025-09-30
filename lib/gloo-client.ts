@@ -5,11 +5,28 @@ interface GlooAuthResponse {
   token_type: string
 }
 
+interface GlooChatMessage {
+  role: string
+  content: string
+}
+
+interface GlooChatResponse {
+  choices: Array<{ message?: GlooChatMessage; text?: string }>
+}
+
+const TOKEN_ENDPOINT = process.env.GLOO_TOKEN_URL ?? "https://platform.ai.gloo.com/oauth2/token"
+const TOKEN_SCOPE = process.env.GLOO_AUTH_SCOPE ?? "api/access"
+const API_BASE = process.env.GLOO_BASE_URL ?? "https://platform.ai.gloo.com/ai/v1"
+const DEFAULT_MODEL = process.env.GLOO_MODEL ?? "us.anthropic.claude-sonnet-4-20250514-v1:0"
+
 let cachedToken: string | null = null
 let tokenExpiry = 0
 
+function withTrailingPath(base: string, path: string): string {
+  return `${base.replace(/\/?$/, "")}/${path.replace(/^\//, "")}`
+}
+
 export async function getGlooToken(): Promise<string> {
-  // Return cached token if still valid
   if (cachedToken && Date.now() < tokenExpiry) {
     return cachedToken
   }
@@ -21,83 +38,69 @@ export async function getGlooToken(): Promise<string> {
     throw new Error("Gloo AI credentials not configured")
   }
 
-  // Get new token using client credentials flow
-  const response = await fetch("https://platform.ai.gloo.com/oauth/token", {
+  const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString("base64")
+  const response = await fetch(TOKEN_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${authHeader}`,
     },
     body: new URLSearchParams({
       grant_type: "client_credentials",
-      client_id: clientId,
-      client_secret: clientSecret,
+      scope: TOKEN_SCOPE,
     }),
   })
 
   if (!response.ok) {
-    throw new Error(`Failed to get Gloo token: ${response.statusText}`)
+    const errorText = await response.text()
+    throw new Error(`Failed to get Gloo token: ${response.status} ${response.statusText} ${errorText}`.trim())
   }
 
   const data: GlooAuthResponse = await response.json()
   cachedToken = data.access_token
-  // Set expiry to 5 minutes before actual expiry for safety
-  tokenExpiry = Date.now() + (data.expires_in - 300) * 1000
+  tokenExpiry = Date.now() + Math.max(data.expires_in - 300, 60) * 1000
 
   return cachedToken
 }
 
-export async function glooCompletion(prompt: string): Promise<string> {
+async function glooChat(messages: GlooChatMessage[], temperature = 0.7): Promise<string> {
   const token = await getGlooToken()
-  const baseUrl = process.env.GLOO_BASE_URL || "https://platform.ai.gloo.com/ai/v1"
-  const model = process.env.GLOO_MODEL || "us.anthropic.claude-sonnet-4-20250514-v1:0"
+  const endpoint = withTrailingPath(API_BASE, "chat/completions")
 
-  const response = await fetch(`${baseUrl}/completions`, {
+  const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
-      model,
-      prompt,
-      max_tokens: 2000,
-      temperature: 0.7,
-    }),
-  })
-
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Gloo completion failed: ${error}`)
-  }
-
-  const data = await response.json()
-  return data.choices[0].text
-}
-
-export async function glooMessages(messages: Array<{ role: string; content: string }>): Promise<string> {
-  const token = await getGlooToken()
-  const baseUrl = process.env.GLOO_BASE_URL || "https://platform.ai.gloo.com/ai/v1"
-  const model = process.env.GLOO_MODEL || "us.anthropic.claude-sonnet-4-20250514-v1:0"
-
-  const response = await fetch(`${baseUrl}/messages`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      model,
+      model: DEFAULT_MODEL,
       messages,
       max_tokens: 2000,
-      temperature: 0.7,
+      temperature,
     }),
   })
 
   if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Gloo messages failed: ${error}`)
+    const errorText = await response.text()
+    throw new Error(`Gloo chat request failed: ${response.status} ${response.statusText} ${errorText}`.trim())
   }
 
-  const data = await response.json()
-  return data.content[0].text
+  const data: GlooChatResponse = await response.json()
+  const choice = data.choices?.[0]
+  const content = choice?.message?.content ?? choice?.text
+
+  if (!content) {
+    throw new Error("Gloo chat response did not include message content")
+  }
+
+  return content
+}
+
+export async function glooCompletion(prompt: string): Promise<string> {
+  return glooChat([{ role: "user", content: prompt }])
+}
+
+export async function glooMessages(messages: GlooChatMessage[]): Promise<string> {
+  return glooChat(messages)
 }

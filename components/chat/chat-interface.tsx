@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Plus, Send, Loader2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import { MarkdownMessage } from "./markdown-message"
 
 interface Message {
   id: string
@@ -185,11 +186,11 @@ export function ChatInterface({ userId, conversations: initialConversations }: C
                 {messages.map((message) => (
                   <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
                     <div
-                      className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                      className={`max-w-[80%] rounded-lg px-4 py-3 ${
                         message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
                       }`}
                     >
-                      <p className="text-sm leading-relaxed">{message.content}</p>
+                      <MarkdownMessage content={message.content} />
                     </div>
                   </div>
                 ))}

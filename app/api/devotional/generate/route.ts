@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase/server"
-import { glooCompletion } from "@/lib/gloo-client"
+import { glooMessages } from "@/lib/gloo-client"
 
 export async function POST(request: Request) {
   try {
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 3. Three specific prayer points
 4. 2-3 spiritual themes (single words like "faith", "grace", "perseverance")
 
-Format as JSON:
+Respond with strictly valid JSON matching:
 {
   "verse_reference": "Book Chapter:Verse",
   "verse_text": "Full verse text",
@@ -45,10 +45,18 @@ Format as JSON:
   "themes": ["theme1", "theme2"]
 }`
 
-    const response = await glooCompletion(prompt)
+    const response = await glooMessages([
+      {
+        role: "system",
+        content:
+          "You are an assistant that returns only JSON. Do not wrap responses in markdown. Respond with UTF-8 JSON matching the requested schema.",
+      },
+      { role: "user", content: prompt },
+    ])
 
-    // Parse the JSON response
-    const devotionalData = JSON.parse(response)
+    // Remove accidental markdown fences before parsing JSON
+    const sanitized = response.trim().replace(/^```json\s*|```$/g, "")
+    const devotionalData = JSON.parse(sanitized)
 
     // Save to database
     const { data: devotional, error } = await supabase
