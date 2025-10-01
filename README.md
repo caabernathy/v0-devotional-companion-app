@@ -4,7 +4,7 @@ A Next.js-based devotional companion application that provides AI-generated dail
 
 ## Features
 
-- AI-generated daily devotionals using Claude Sonnet 4
+- AI-generated daily devotionals using Gloo AI
 - Interactive chat interface for spiritual guidance
 - User authentication and data persistence with Supabase
 - Modern UI built with React, Tailwind CSS, and Radix UI components
@@ -70,7 +70,7 @@ A Next.js-based devotional companion application that provides AI-generated dail
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **UI Components**: Radix UI
-- **AI**: Gloo AI (Claude Sonnet 4)
+- **AI**: Gloo AI
 - **Database**: Supabase
 - **Deployment**: Vercel
 
